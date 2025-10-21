@@ -1,0 +1,76 @@
+# docker-compose.yml (已修正)
+
+# 顶部的 version 字段在新版 docker compose 中是可选的，可以保留或删除
+version: '3.8'
+
+services:
+  # RSSHub 服务
+  rsshub:
+    build: .
+    container_name: rsshub
+    restart: always
+    ports:
+      - "1200:1200"
+    volumes:
+      - ./routes.json:/app/routes.json
+    environment:
+      # --- 关键修正：更改了环境变量名称 ---
+      # 正确的变量名是 RSSHUB_DYNAMIC_ROUTES_JSON
+      RSSHUB_DYNAMIC_ROUTES_JSON: /app/routes.json
+      # 这个变量名是正确的，保持不变
+      RSSHUB_ALLOW_ALL_EXTERNAL_ROUTES: 'true'
+      # --- 修正结束 ---
+
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
+      HTTP_PROXY: "http://ip:端口"
+      HTTPS_PROXY: "http://ip:端口"
+      NODE_ENV: production
+      CACHE_TYPE: redis
+      REDIS_URL: "redis://redis:6379/"
+      PUPPETEER_WS_ENDPOINT: "ws://browserless:3000"
+      TZ: Asia/Shanghai
+    depends_on:
+      redis:
+        condition: service_healthy
+      browserless:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1200/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Browserless 服务 (Puppeteer 渲染)
+  browserless:
+    image: browserless/chrome
+    container_name: browserless
+    restart: always
+    ulimits:
+      core:
+        hard: 0
+        soft: 0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/pressure"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Redis 服务 (缓存)
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+# 定义数据卷
+volumes:
+  redis-data:

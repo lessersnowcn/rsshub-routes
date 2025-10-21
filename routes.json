@@ -1,0 +1,25 @@
+{
+  "baidu": {
+    "script": "/app/lib/routes/my/dynamic.ts",
+    "config": {
+      "title": "百度热搜",
+      "url": "https://top.baidu.com/board?tab=realtime",
+      "listSelector": ".category-wrap_iQLoo",
+      "titleSelector": ".c-single-text-ellipsis",
+      "linkSelector": "a",
+      "linkIsSelf": false,
+      "linkPrefix": "https://www.baidu.com"
+    }
+  },
+  "hackernews": {
+    "script": "/app/lib/routes/my/dynamic.ts",
+    "config": {
+      "title": "Hacker News",
+      "url": "https://news.ycombinator.com/",
+      "listSelector": ".athing",
+      "titleSelector": ".titleline a", 
+      "linkSelector": ".titleline a",
+      "linkIsSelf": false
+    }
+  }
+}
